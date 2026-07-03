@@ -85,6 +85,11 @@
   .basket-clear{font:inherit;font-weight:600;cursor:pointer;background:transparent;color:#dcebe9;
     border:1px solid rgba(255,255,255,.4);border-radius:10px;padding:11px 18px}
   .basket-clear:hover{background:rgba(255,255,255,.12)}
+  /* message de confirmation panier */
+  .basket-msg{position:fixed;left:50%;transform:translateX(-50%);bottom:88px;z-index:90;
+    width:min(760px,calc(100% - 40px));background:#fff;color:var(--ink);border:1px solid var(--gold);
+    border-left:4px solid var(--gold);border-radius:12px;padding:14px 20px;font-size:.95rem;line-height:1.5;
+    box-shadow:0 16px 40px rgba(0,54,55,.22)}
   /* Videos */
   .ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:44px}
   .ov-item{margin:0}
@@ -270,6 +275,7 @@
 
 
 <!-- Panier partagé -->
+<div id="basket-msg" class="basket-msg" style="display:none"></div>
 <div id="basket-bar" class="basket-bar" style="display:none">
   <span class="basket-txt"><b id="basket-count">0</b> wines in your basket</span>
   <button type="button" id="basket-email" class="ct-more">Email my basket</button>
@@ -301,15 +307,19 @@
     if(window.WINE_BASKET[k]) delete window.WINE_BASKET[k]; else window.WINE_BASKET[k]=true;
     window.wineSync();
   });
+  var msg = document.getElementById('basket-msg'); var msgT;
+  function toast(txt){ msg.textContent = txt; msg.style.display = 'block';
+    clearTimeout(msgT); msgT = setTimeout(function(){ msg.style.display = 'none'; }, 8000); }
   document.getElementById('basket-email').addEventListener('click', function(){
-    var ks = keys(); if(!ks.length) return;
+    var ks = keys();
+    if(!ks.length){ toast('Your basket is empty — add a few wines first.'); return; }
     var lines = ks.map(function(k){ return '- '+line(k); });
     var bd = 'Hello,\n\nI would like to enquire about the following wines:\n\n'+lines.join('\n')+'\n\nName:\nDelivery country:\n\nThank you.';
     var href = 'mailto:'+CONTACT+'?subject='+encodeURIComponent('Wine enquiry — my basket ('+ks.length+' lines)')+'&body='+encodeURIComponent(bd);
-    if(href.length>1900){ alert('Your basket is long — your email client may trim it. Consider sending it in two parts, or use Book a call.'); }
+    toast(ks.length+' wine'+(ks.length>1?'s':'')+' ready — your email app is opening. Just press send. If nothing opens, email '+CONTACT+' or use “Book a call”.');
     window.location.href = href;
   });
-  document.getElementById('basket-clear').addEventListener('click', function(){ window.WINE_BASKET={}; window.wineSync(); });
+  document.getElementById('basket-clear').addEventListener('click', function(){ window.WINE_BASKET={}; window.wineSync(); toast('Basket cleared.'); });
   window.wineSync();
 })();
 </script>
